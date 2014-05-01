@@ -51,7 +51,8 @@ class TestLocalRolesIndex(unittest.TestCase):
             (2, Dummy('/a/b/c', ['Anonymous', 'Authenticated'])),
             (3, Dummy('/a/b/c/a', ['Anonymous', 'Authenticated'])),
             (4, Dummy('/a/b/c/d', ['Anonymous', 'Authenticated'])),
-            (5, Dummy('/a/b/c/e', ['Anonymous', 'Authenticated'], local_roles_block=True)),
+            (5, Dummy('/a/b/c/e', ['Anonymous', 'Authenticated'],
+                      local_roles_block=True)),
             (6, Dummy('/a/b/c/e/f', ['Anonymous'])),
         ]
         self._noop_req = {'notAnIndex': 123}
@@ -64,11 +65,11 @@ class TestLocalRolesIndex(unittest.TestCase):
         """
         """
 
-    def _populateIndex(self):
-        for k, v in self._values:
+    def _populate_index(self):
+        for (k, v) in self._values:
             self._index.index_object(k, v)
 
-    def _checkApply(self, req, expectedValues):
+    def _check_apply(self, req, expectedValues):
         result, used = self._index._apply_index(req)
         self.assertEqual(used, ('allowedRolesAndUsers',))
         self.assertEqual(
@@ -92,7 +93,7 @@ class TestLocalRolesIndex(unittest.TestCase):
         verifyClass(IUniqueValueIndex, LocalRolesIndex)
 
     def test_add_object_without_local_roles(self):
-        self._populateIndex()
+        self._populate_index()
         self.assertFalse(self._index.index_object(999, None))
 
     def test_empty(self):
@@ -100,9 +101,9 @@ class TestLocalRolesIndex(unittest.TestCase):
         assert len(self._index.referencedObjects()) == 0
         self.assertEqual(self._index.numObjects(), 0)
 
-        assert self._index.getEntryForObject(1234) is None
-        assert (self._index.getEntryForObject(1234, self._marker)
-                 is self._marker), self._index.getEntryForObject(1234)
+        self.assertIsNone(self._index.getEntryForObject(1234))
+        self.assertEqual(self._index.getEntryForObject(1234, self._marker),
+                         self._marker)
         self._index.unindex_object(1234)
 
         assert self._index.hasUniqueValuesFor('allowedRolesAndUsers')
@@ -110,46 +111,47 @@ class TestLocalRolesIndex(unittest.TestCase):
         assert len(self._index.uniqueValues('allowedRolesAndUsers')) == 0
 
         assert self._index._apply_index(self._noop_req) is None
-        self._checkApply(self._all_req, [])
-        self._checkApply(self._some_req, [])
-        self._checkApply(self._overlap_req, [])
-        self._checkApply(self._string_req, [])
+        self._check_apply(self._all_req, [])
+        self._check_apply(self._some_req, [])
+        self._check_apply(self._overlap_req, [])
+        self._check_apply(self._string_req, [])
 
     def test_populated(self):
-        self._populateIndex()
+        self._populate_index()
         values = self._values
 
         #assert len( self._index ) == len( values )
         assert len(self._index.referencedObjects()) == len(values)
 
         assert self._index.getEntryForObject(1234) is None
-        assert ( self._index.getEntryForObject(1234, self._marker)
-                 is self._marker )
+        self.assertEqual(self._index.getEntryForObject(1234, self._marker),
+                         self._marker)
         self._index.unindex_object(1234)  # nothrow
         self.assertEqual(self._index.indexSize(), len(values) - 1)
-
-        for k, v in values:
+        for (k, v) in values:
             entry = self._index.getEntryForObject(k)
             entry.sort()
-            kw = sortedUnique(v.allowedRolesAndUsers())
-            self.assertEqual(entry, kw)
+            self.assertEqual(entry, sorted(set(v.allowedRolesAndUsers)))
 
-        assert len(self._index.uniqueValues('allowedRolesAndUsers')) == len(values) - 1
-        assert self._index._apply_index(self._noop_req) is None
+        uniq_values = self._index.uniqueValues('allowedRolesAndUsers')
+        self.assertEqual(len(uniq_values), len(values) - 1)
+        self.assertIsNone(self._index._apply_index(self._noop_req))
 
-        self._checkApply(self._all_req, values[:-1])
-        self._checkApply(self._some_req, values[5:7])
-        self._checkApply(self._overlap_req, values[2:7])
-        self._checkApply(self._string_req, values[:-1])
+        self._check_apply(self._all_req, values[:-1])
+        self._check_apply(self._some_req, values[5:7])
+        self._check_apply(self._overlap_req, values[2:7])
+        self._check_apply(self._string_req, values[:-1])
 
     def test_reindex_change(self):
-        self._populateIndex()
+        self._populate_index()
         expected = Dummy('/x/y', ['Anonymous'])
         self._index.index_object(6, expected)
-        result, used = self._index._apply_index({'allowedRolesAndUsers': ['x', 'y']})
+        (result, used) = self._index._apply_index({
+            'allowedRolesAndUsers': ['x', 'y']
+        })
         result = result.keys()
-        assert len(result) == 1
-        assert result[0] == 6
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], 6)
         result, used = self._index._apply_index(
             {'allowedRolesAndUsers': ['a', 'b', 'c', 'e', 'f']}
         )
@@ -157,20 +159,21 @@ class TestLocalRolesIndex(unittest.TestCase):
         assert 6 not in result
 
     def test_reindex_no_change(self):
-        self._populateIndex()
+        self._populate_index()
         expected = Dummy('/a/b/c', ['Anonymous'])
         self._index.index_object(8, expected)
         result, used = self._index._apply_index(
             {'allowedRolesAndUsers': ['allowedRolesAndUsers', 'notAnIndex']})
         result = result.keys()
-        assert len(result) == 1
-        assert result[0] == 8
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], 8)
         self._index.index_object(8, expected)
-        result, used = self._index._apply_index(
-            {'allowedRolesAndUsers': ['allowedRolesAndUsers', 'notAnIndex']})
+        result, used = self._index._apply_index({
+            'allowedRolesAndUsers': ['allowedRolesAndUsers', 'notAnIndex']
+        })
         result = result.keys()
-        assert len(result) == 1
-        assert result[0] == 8
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], 8)
 
     def test_noindexing_when_noattribute(self):
         to_index = Dummy('/a/b/c/d/e/f/g', ['Anonymous'])
