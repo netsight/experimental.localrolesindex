@@ -1,13 +1,14 @@
 from App.special_dtml import DTMLFile
+from Products.PluginIndexes.KeywordIndex.KeywordIndex import KeywordIndex
 from Products.PluginIndexes.common.UnIndex import UnIndex
 
 
-class LocalRolesIndex(UnIndex):
+class LocalRolesIndex(KeywordIndex):
     """
     TODO: Docstring
     """
     meta_type = 'LocalRolesIndex'
-    query_options = ('query', )
+    query_options = ('query', 'operator')
 
     def _index_object(self, documentId, obj, threshold=None, attr=''):
         """
@@ -18,6 +19,7 @@ class LocalRolesIndex(UnIndex):
         :param attr:
         :return:
         """
+        return super(LocalRolesIndex, self)._index_object(documentId, obj, threshold, attr)
         roles = getattr(obj, 'allowedRolesAndUsers', None)
         if not roles:
             return False

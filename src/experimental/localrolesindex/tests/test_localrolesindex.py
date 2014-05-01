@@ -53,13 +53,9 @@ class TestLocalRolesIndex(unittest.TestCase):
             (4, Dummy('/a/b/c/d', ['Anonymous', 'Authenticated'])),
             (5, Dummy('/a/b/c/e', ['Anonymous', 'Authenticated'],
                       local_roles_block=True)),
-            (6, Dummy('/a/b/c/e/f', ['Anonymous'])),
+            (6, Dummy('/a/b/c/e/f', ['Authenticated'])),
+            (7, Dummy('/a/b/c/e/f/g', ['Reviewer'])),
         ]
-        self._noop_req = {'notAnIndex': 123}
-        self._all_req = {'allowedRolesAndUsers': ['a']}
-        self._some_req = {'allowedRolesAndUsers': ['e']}
-        self._overlap_req = {'allowedRolesAndUsers': ['c', 'e']}
-        self._string_req = {'allowedRolesAndUsers': 'a'}
 
     def tearDown(self):
         """
@@ -68,19 +64,6 @@ class TestLocalRolesIndex(unittest.TestCase):
     def _populate_index(self):
         for (k, v) in self._values:
             self._index.index_object(k, v)
-
-    def _check_apply(self, req, expectedValues):
-        result, used = self._index._apply_index(req)
-        self.assertEqual(used, ('allowedRolesAndUsers',))
-        self.assertEqual(
-            len(result),
-            len(expectedValues)
-        )
-
-        if hasattr(result, 'keys'):
-            result = result.keys()
-        for k, v in expectedValues:
-            self.assertIn(k, result)
 
     def test_interfaces(self):
         from Products.PluginIndexes.interfaces import IPluggableIndex
@@ -110,74 +93,97 @@ class TestLocalRolesIndex(unittest.TestCase):
         assert not self._index.hasUniqueValuesFor('notAnIndex')
         assert len(self._index.uniqueValues('allowedRolesAndUsers')) == 0
 
-        assert self._index._apply_index(self._noop_req) is None
-        self._check_apply(self._all_req, [])
-        self._check_apply(self._some_req, [])
-        self._check_apply(self._overlap_req, [])
-        self._check_apply(self._string_req, [])
+    def test_index_object_noop(self):
+        self.fail()
+
+    def test_index_object(self):
+        self._populate_index()
+        docs, used = self._index._apply_index(
+            {'allowedRolesAndUsers': ['Anonymous']},
+        )
+        self.assertEqual(tuple(docs), (0, 1, 2, 3, 4, 5, ))
+        self.assertEqual(used, (self._index.id,))
+
+        docs, used = self._index._apply_index(
+            {'allowedRolesAndUsers': ['Authenticated']},
+        )
+        self.assertEqual(tuple(docs), (2, 3, 4, 5, 6, ))
+        self.assertEqual(used, (self._index.id,))
+
+        docs, used = self._index._apply_index(
+            {'allowedRolesAndUsers': ['Member']},
+        )
+        self.assertEqual(tuple(docs), ())
+        self.assertEqual(used, (self._index.id,))
 
     def test_populated(self):
         self._populate_index()
         values = self._values
 
-        #assert len( self._index ) == len( values )
-        assert len(self._index.referencedObjects()) == len(values)
+        self.assertEqual(len(self._index.referencedObjects()), len(values))
 
-        assert self._index.getEntryForObject(1234) is None
-        self.assertEqual(self._index.getEntryForObject(1234, self._marker),
-                         self._marker)
-        self._index.unindex_object(1234)  # nothrow
-        self.assertEqual(self._index.indexSize(), len(values) - 1)
-        for (k, v) in values:
-            entry = self._index.getEntryForObject(k)
-            entry.sort()
-            self.assertEqual(entry, sorted(set(v.allowedRolesAndUsers)))
-
-        uniq_values = self._index.uniqueValues('allowedRolesAndUsers')
-        self.assertEqual(len(uniq_values), len(values) - 1)
-        self.assertIsNone(self._index._apply_index(self._noop_req))
-
-        self._check_apply(self._all_req, values[:-1])
-        self._check_apply(self._some_req, values[5:7])
-        self._check_apply(self._overlap_req, values[2:7])
-        self._check_apply(self._string_req, values[:-1])
-
-    def test_reindex_change(self):
-        self._populate_index()
-        expected = Dummy('/x/y', ['Anonymous'])
-        self._index.index_object(6, expected)
-        (result, used) = self._index._apply_index({
-            'allowedRolesAndUsers': ['x', 'y']
+    def _query_index(self, local_roles, operator='or'):
+        result, _ = self._index._apply_index({
+            'allowedRolesAndUsers': {
+                'query': local_roles,
+                'operator': operator
+            }
         })
-        result = result.keys()
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0], 6)
-        result, used = self._index._apply_index(
-            {'allowedRolesAndUsers': ['a', 'b', 'c', 'e', 'f']}
+        return list(result)
+
+    def test_reindex_change_no_recurse(self):
+        self._populate_index()
+        result = self._query_index(['Anonymous', 'Authenticated'], operator='and')
+        self.assertEqual(list(result), [2, 3, 4, 5])
+        self._index.index_object(
+            4,
+            Dummy('/a/b/c/d', ['Anonymous', 'Authenticated', 'Editor'])
         )
-        result = result.keys()
-        assert 6 not in result
+        result = self._query_index(['Anonymous', 'Authenticated'], operator='and')
+        self.assertEqual(list(result), [2, 3, 4, 5])
+        result = self._query_index(['Editor'], operator='and')
+        self.assertEqual(list(result), [4, ])
+        self._index.index_object(
+            2,
+            Dummy('/a/b/c', ['Contributor'])
+        )
+        result = self._query_index(['Contributor'])
+        self.assertEqual(list(result), [2, ])
+        result = self._query_index(['Anonymous', 'Authenticated'], operator='and')
+        self.assertEqual(list(result), [3, 4, 5])
+
+    def test_reindex_change_recurse(self):
+        self._populate_index()
+        self._index.index_object(
+            2,
+            Dummy('/a/b/c', ['Contributor'])
+        )
+        result = self._query_index(['Contributor'])
+        self.assertEqual(list(result), [2, 3, 4, 5])
+        result = self._query_index(['Anonymous', 'Authenticated'])
+        self.assertEqual(list(result), [0, 1, 3, 4, 5, 6])
 
     def test_reindex_no_change(self):
         self._populate_index()
-        expected = Dummy('/a/b/c', ['Anonymous'])
-        self._index.index_object(8, expected)
+        expected = Dummy('/a/b/c/d/e/f/g', ['Reviewer'])
+        self._index.index_object(7, expected)
         result, used = self._index._apply_index(
-            {'allowedRolesAndUsers': ['allowedRolesAndUsers', 'notAnIndex']})
+            {'allowedRolesAndUsers': ['Reviewer']}
+        )
         result = result.keys()
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0], 8)
-        self._index.index_object(8, expected)
-        result, used = self._index._apply_index({
-            'allowedRolesAndUsers': ['allowedRolesAndUsers', 'notAnIndex']
-        })
+        self.assertEqual(result[0], 7)
+        self._index.index_object(7, expected)
+        result, used = self._index._apply_index(
+            {'allowedRolesAndUsers': ['Reviewer']}
+        )
         result = result.keys()
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0], 8)
+        self.assertEqual(result[0], 7)
 
     def test_noindexing_when_noattribute(self):
         to_index = Dummy('/a/b/c/d/e/f/g', ['Anonymous'])
-        self._index._index_object(10, to_index, attr='UNKNOWN')
+        self._index.index_object(10, to_index, attr='UNKNOWN')
         self.assertFalse(self._index._unindex.get(10))
         self.assertFalse(self._index.getEntryForObject(10))
 
@@ -187,7 +193,7 @@ class TestLocalRolesIndex(unittest.TestCase):
                 raise AttributeError
 
         to_index = FauxObject()
-        self._index._index_object(10, to_index, attr='allowedRolesAndUsers')
+        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
         self.assertFalse(self._index._unindex.get(10))
         self.assertFalse(self._index.getEntryForObject(10))
 
@@ -197,17 +203,17 @@ class TestLocalRolesIndex(unittest.TestCase):
                 return 'allowedRolesAndUsers'
 
         to_index = FauxObject()
-        self._index._index_object(10, to_index, attr='allowedRolesAndUsers')
+        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
         self.assertFalse(self._index._unindex.get(10))
         self.assertFalse(self._index.getEntryForObject(10))
 
     def test_value_removes(self):
         to_index = Dummy('/a/b/c', ['hello'])
-        self._index._index_object(10, to_index, attr='allowedRolesAndUsers')
+        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
         self.assertTrue(self._index._unindex.get(10))
 
         to_index = Dummy('')
-        self._index._index_object(10, to_index, attr='allowedRolesAndUsers')
+        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
         self.assertFalse(self._index._unindex.get(10))
 
 
