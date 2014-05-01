@@ -1,37 +1,6 @@
 import unittest
 from experimental.localrolesindex.localrolesindex import LocalRolesIndex
-
-
-class TestNode(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_insert_single_node(self):
-        self.fail()
-
-    def test_insert_node_with_descendants(self):
-        self.fail()
-
-
-class Dummy(object):
-
-    def __init__(self, path, local_roles, local_roles_block=False):
-        self.path = path
-        self.allowedRolesAndUsers = local_roles
-        self.__ac_local_roles_block__ = local_roles_block
-        self.id = path.split('/')[-1]
-
-    def __str__(self):
-        return '<Dummy: %s>' % self.id
-
-    __repr__ = __str__
-
-    def getId(self):
-        return self.id
-
-    def getPhysicalPath(self):
-        return self.path.split('/')
+from experimental.localrolesindex.tests.utils import Dummy
 
 
 class TestLocalRolesIndex(unittest.TestCase):

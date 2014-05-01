@@ -1,6 +1,7 @@
 from App.special_dtml import DTMLFile
 from Products.PluginIndexes.KeywordIndex.KeywordIndex import KeywordIndex
 from Products.PluginIndexes.common.UnIndex import UnIndex
+from experimental.localrolesindex.shadowtree import Node
 
 
 class LocalRolesIndex(KeywordIndex):
@@ -10,9 +11,13 @@ class LocalRolesIndex(KeywordIndex):
     meta_type = 'LocalRolesIndex'
     query_options = ('query', 'operator')
 
+    def __init__(self, *args, **kwargs):
+        super(LocalRolesIndex, self).__init__(*args, **kwargs)
+        self.shadowtree = Node()
+
     def _index_object(self, documentId, obj, threshold=None, attr=''):
         """
-
+        - Create shadow tree nodes to path of obj (if not exists)
         :param documentId:
         :param obj:
         :param threshold:
@@ -20,10 +25,20 @@ class LocalRolesIndex(KeywordIndex):
         :return:
         """
         return super(LocalRolesIndex, self)._index_object(documentId, obj, threshold, attr)
-        roles = getattr(obj, 'allowedRolesAndUsers', None)
-        if not roles:
-            return False
-        return False
+
+    def _index_object_recursive(self, documentId, obj, threshold=None, attr=''):
+        """
+        - Index current object (super)
+        - Walk shadow tree to get children
+        - ReIndex children
+
+        :param documentId:
+        :param obj:
+        :param threshold:
+        :param attr:
+        """
+        super(LocalRolesIndex, self)._index_object(documentId, obj, threshold, attr)
+
 
     def unindex_object(self, documentId):
         pass
