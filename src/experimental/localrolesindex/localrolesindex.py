@@ -7,6 +7,7 @@ class LocalRolesIndex(UnIndex):
     TODO: Docstring
     """
     meta_type = 'LocalRolesIndex'
+    query_options = ('query', )
 
     def _index_object(self, documentId, obj, threshold=None, attr=''):
         """
@@ -19,7 +20,11 @@ class LocalRolesIndex(UnIndex):
         """
         roles = getattr(obj, 'allowedRolesAndUsers', None)
         if not roles:
-            return
+            return False
+        return False
+
+    def unindex_object(self, documentId):
+        pass
 
 
 def manage_addLocalRolesIndex(self, id, extra=None, REQUEST=None,
