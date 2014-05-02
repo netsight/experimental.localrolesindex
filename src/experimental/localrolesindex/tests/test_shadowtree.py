@@ -1,6 +1,7 @@
 import unittest
 from .utils import Dummy
 
+
 class TestNode(unittest.TestCase):
 
     def setUp(self):
@@ -21,7 +22,10 @@ class TestNode(unittest.TestCase):
         self.assertIsNone(node.token)
         self.assertIsNone(node.physical_path)
         self.assertFalse(node.block_inherit_roles)
-        node.update_security_info(Dummy('/foobar', ['Editor'], local_roles_block=True))
+        self.assertIsNone(node.document_id)
+        node.update_security_info(1, Dummy('/foobar', ['Editor'],
+                                           local_roles_block=True))
+        self.assertEqual(node.document_id, 1)
         self.assertEqual(node.id, 'foobar')
         self.assertIs(node.__parent__, self.root)
         self.assertIsInstance(node.token, int)
@@ -47,17 +51,20 @@ class TestNode(unittest.TestCase):
 
         b = leaf.__parent__
         self.assertEqual(b.id, 'b')
+        self.assertIsNone(b.document_id)
         self.assertIsNone(b.physical_path)
         self.assertIsNone(b.token)
         self.assertFalse(b.block_inherit_roles)
 
         a = b.__parent__
         self.assertEqual(a.id, 'a')
+        self.assertIsNone(a.document_id)
         self.assertIsNone(a.physical_path)
         self.assertIsNone(a.token)
         self.assertFalse(a.block_inherit_roles)
 
         self.assertEqual(leaf.__parent__.id, 'b')
+        self.assertIsNone(leaf.document_id)
         self.assertIsNone(leaf.physical_path)
         self.assertIsNone(leaf.token)
         self.assertFalse(leaf.block_inherit_roles)
@@ -131,14 +138,7 @@ class TestNode(unittest.TestCase):
     #         dummy = Dummy(node.id, lr)
     #         node.update_security_info(dummy)
         
-    #     from collections import defaultdict
-    #     shared_tokens = defaultdict(set)
-    #     for node in self.root.descendants(ignore_block=True):
-    #         print('Node: %s, Parent: %s' % (node.id, node.__parent__.id))
-    #         shared_tokens[node.token].add(node)
-    #     from pprint import pprint
-    #     print('Shared Tokens:')
-    #     pprint(dict(shared_tokens))
+    #
 
 def test_suite():
     suite = unittest.TestSuite()

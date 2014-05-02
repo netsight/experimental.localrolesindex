@@ -11,6 +11,7 @@ class Node(BTrees.family64.OO.BTree):
     block_inherit_roles = False
     token = None
     physical_path = None
+    document_id = None
 
     def __init__(self, id='', parent=None):
         super(Node, self).__init__()
@@ -44,11 +45,20 @@ class Node(BTrees.family64.OO.BTree):
                 node = node[comp]
         return node
 
-    def update_security_info(self, obj):
+    @classmethod
+    def get_security_token(cls, obj):
+        return hash((tuple(obj.allowedRolesAndUsers()),
+                     cls.get_local_roles_block(obj), ))
+
+    @staticmethod
+    def get_local_roles_block(obj):
+        return getattr(obj, '__ac_local_roles_block__', False)
+
+    def update_security_info(self, document_id, obj):
+        self.document_id = document_id
         self.physical_path = obj.getPhysicalPath()
-        self.block_inherit_roles = getattr(obj, '__ac_local_roles_block__', False)
-        self.token = hash((tuple(obj.allowedRolesAndUsers),
-                           self.block_inherit_roles, ))
+        self.block_inherit_roles = self.get_local_roles_block(obj)
+        self.token = self.get_security_token(obj)
         assert (self.id == obj.getId())
 
     def descendants(self, ignore_block=False):
