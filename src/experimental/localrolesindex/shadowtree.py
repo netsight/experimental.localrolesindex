@@ -13,7 +13,7 @@ class Node(BTrees.family64.OO.BTree):
     physical_path = None
 
     def __init__(self, id='', parent=None):
-        super(BTrees.family64.OO.BTree, self).__init__()
+        super(Node, self).__init__()
         self.id = id
         self.__parent__ = parent
 
