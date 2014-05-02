@@ -1,3 +1,6 @@
+.. image:: https://api.travis-ci.org/netsight/experimental.localrolesindex.png
+   :target: https://travis-ci.org/netsight/experimental.localrolesindex
+
 experimental.localrolesindex
 ============================
 
