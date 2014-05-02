@@ -1,6 +1,5 @@
 import unittest
-from experimental.localrolesindex.tests.utils import Dummy
-
+from .utils import Dummy
 
 class TestNode(unittest.TestCase):
 

@@ -23,8 +23,9 @@ class LocalRolesIndex(KeywordIndex):
         :param threshold:
         :param attr:
         :return:
-        """
-        return super(LocalRolesIndex, self)._index_object(documentId, obj, threshold, attr)
+        """     
+        index_object = super(LocalRolesIndex, self)._index_object
+        return index_object(documentId, obj, threshold=threshold, attr=attr)
 
     def _index_object_recursive(self, documentId, obj, threshold=None, attr=''):
         """
@@ -37,8 +38,7 @@ class LocalRolesIndex(KeywordIndex):
         :param threshold:
         :param attr:
         """
-        super(LocalRolesIndex, self)._index_object(documentId, obj, threshold, attr)
-
+        return self._index_object(documentId, obj, threshold=threshold, attr=attr)
 
     def unindex_object(self, documentId):
         pass

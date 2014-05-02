@@ -1,18 +1,16 @@
 import unittest
-from experimental.localrolesindex.localrolesindex import LocalRolesIndex
-from experimental.localrolesindex.tests.utils import Dummy
+from .utils import Dummy
 
 
 class TestLocalRolesIndex(unittest.TestCase):
-    """
-    Test LocalRolesIndex objects.
-    """
+    """Tests for LocalRolesIndex objects."""
+
     _old_log_write = None
 
     def setUp(self):
         """
         """
-        self._index = LocalRolesIndex('allowedRolesAndUsers')
+        self._index = self._make_one('allowedRolesAndUsers')
         self._marker = []
         self._values = [
             (0, Dummy('/a', ['Anonymous'])),
@@ -30,6 +28,14 @@ class TestLocalRolesIndex(unittest.TestCase):
         """
         """
 
+    def _get_target_class(self):
+        from ..localrolesindex import LocalRolesIndex
+        return LocalRolesIndex
+
+    def _make_one(self, *args, **kw):
+        cls = self._get_target_class()
+        return cls(*args, **kw)
+
     def _populate_index(self):
         for (k, v) in self._values:
             self._index.index_object(k, v)
@@ -39,6 +45,7 @@ class TestLocalRolesIndex(unittest.TestCase):
         from Products.PluginIndexes.interfaces import ISortIndex
         from Products.PluginIndexes.interfaces import IUniqueValueIndex
         from zope.interface.verify import verifyClass
+        LocalRolesIndex = self._get_target_class()
 
         verifyClass(IPluggableIndex, LocalRolesIndex)
         verifyClass(ISortIndex, LocalRolesIndex)
@@ -152,17 +159,17 @@ class TestLocalRolesIndex(unittest.TestCase):
 
     def test_noindexing_when_noattribute(self):
         to_index = Dummy('/a/b/c/d/e/f/g', ['Anonymous'])
-        self._index.index_object(10, to_index, attr='UNKNOWN')
+        self._index.index_object(10, to_index)
         self.assertFalse(self._index._unindex.get(10))
         self.assertFalse(self._index.getEntryForObject(10))
 
-    def test_noindexing_when_raising_attribute(self):
+    def test_noindexing_when_raising_attributeerror(self):
         class FauxObject:
             def allowedRolesAndUsers(self):
                 raise AttributeError
 
         to_index = FauxObject()
-        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
+        self._index.index_object(10, to_index)
         self.assertFalse(self._index._unindex.get(10))
         self.assertFalse(self._index.getEntryForObject(10))
 
@@ -172,17 +179,17 @@ class TestLocalRolesIndex(unittest.TestCase):
                 return 'allowedRolesAndUsers'
 
         to_index = FauxObject()
-        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
+        self._index.index_object(10, to_index)
         self.assertFalse(self._index._unindex.get(10))
         self.assertFalse(self._index.getEntryForObject(10))
 
     def test_value_removes(self):
         to_index = Dummy('/a/b/c', ['hello'])
-        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
+        self._index.index_object(10, to_index)
         self.assertTrue(self._index._unindex.get(10))
 
-        to_index = Dummy('')
-        self._index.index_object(10, to_index, attr='allowedRolesAndUsers')
+        to_index = Dummy('/a/b/c', [])
+        self._index.index_object(10, to_index)
         self.assertFalse(self._index._unindex.get(10))
 
 
