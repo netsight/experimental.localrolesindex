@@ -63,3 +63,8 @@ class TestNode(unittest.TestCase):
         self.assertEqual(leaf.id, 'c')
         self.assertIsInstance(leaf.token, int)
         self.assertFalse(leaf.block_inherit_roles)
+
+def test_suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(TestNode))
+    return suite

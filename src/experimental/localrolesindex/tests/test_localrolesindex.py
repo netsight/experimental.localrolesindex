@@ -189,5 +189,4 @@ class TestLocalRolesIndex(unittest.TestCase):
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestLocalRolesIndex))
-    suite.addTest(unittest.makeSuite(TestNode))
     return suite
