@@ -5,40 +5,6 @@ from experimental.localrolesindex.tests.utils import Dummy
 class TestNode(unittest.TestCase):
 
     def setUp(self):
-        # self.treestruct = {
-        #     'id': 'plone-site',
-        #     'local_roles': [],
-        #     'A': {
-        #         'children': {
-        #             'B': {
-        #                 'children': None
-        #             },
-        #             'C': {
-        #                 'children': {
-        #                     'children': {
-        #                         'D': {
-        #                             'children': None
-        #                         },
-        #                         'E': {
-        #                             'children': {
-        #                                 'F': {
-        #                                     'children': None
-        #                                 }
-        #                             }
-        #                         }
-        #                     }
-        #                 }
-        #             }
-        #         }
-        #     }
-        # }
-        # t={
-        #     'A': None,
-        #     'B': 'A',
-        #     'C': 'A',
-        #
-        #     'F': 'E',
-        # }
         self.root = self.make_one('portal')
 
     def make_one(self, *args, **kw):
@@ -63,6 +29,7 @@ class TestNode(unittest.TestCase):
         self.assertEqual(leaf.id, 'c')
         self.assertIsInstance(leaf.token, int)
         self.assertFalse(leaf.block_inherit_roles)
+
 
 def test_suite():
     suite = unittest.TestSuite()
