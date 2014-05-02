@@ -38,6 +38,9 @@ setup(name='experimental.localrolesindex',
         'zope.interface',
         'BTrees',
       ],
+      extras_require={
+          'test': []
+      },
       include_package_data=True,
       zip_safe=False,
       )
