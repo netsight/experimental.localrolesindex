@@ -17,6 +17,9 @@ class Node(BTrees.family64.OO.BTree):
         self.id = id
         self.__parent__ = parent
 
+    def __repr__(self):
+        return 'Node("%s")' % self.id
+
     @classmethod
     def ensure_path_to(cls, root, obj):
         """Retieve the shadow node for corresponding object.
@@ -26,8 +29,8 @@ class Node(BTrees.family64.OO.BTree):
 
         :param cls: Node class
         :param root: The root node of the shadow tree
-        :param obj: 
-        :returns: 
+        :param obj: The content object.
+        :returns: The leaf shadow 
         :rtype: 
 
         """
@@ -39,7 +42,6 @@ class Node(BTrees.family64.OO.BTree):
                 parent[node.id] = node
             else:
                 node = node[comp]
-        node.update_security_info(obj)
         return node
 
     def update_security_info(self, obj):
@@ -48,3 +50,19 @@ class Node(BTrees.family64.OO.BTree):
         self.token = hash((tuple(obj.allowedRolesAndUsers),
                            self.block_inherit_roles, ))
         assert (self.id == obj.getId())
+
+    def descendants(self, ignore_block=False):
+        """Generates descendant nodes, optionally those that have local roles blocked.
+
+        :param ignore_block: If False, and a node has block_local_roles set 
+                             to True, do not descend to any of its children.
+        """
+        for node in self.values():
+            if node.block_inherit_roles and not ignore_block:
+                continue
+            yield node
+            for descendant in node.descendants(ignore_block=ignore_block):
+                yield descendant
+            
+
+
