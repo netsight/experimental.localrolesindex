@@ -1,5 +1,9 @@
 .. image:: https://api.travis-ci.org/netsight/experimental.localrolesindex.png
-   :target: https://travis-ci.org/netsight/experimental.localrolesindex
+  :target: https://travis-ci.org/netsight/experimental.localrolesindex
+
+.. image:: https://coveralls.io/repos/netsight/experimental.localrolesindex/badge.png
+  :target: https://coveralls.io/r/netsight/experimental.localrolesindex
+
 
 experimental.localrolesindex
 ============================
