@@ -19,5 +19,3 @@ class Dummy(object):
 
     def allowedRolesAndUsers(self):
         return self.aru
-
-
