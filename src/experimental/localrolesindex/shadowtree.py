@@ -63,7 +63,10 @@ class Node(BTrees.family64.OO.BTree):
         :returns: The hash of the local role information contained by `obj`.
         :rtype: int
         """
-        local_roles = tuple(obj.allowedRolesAndUsers())
+        local_roles = obj.allowedRolesAndUsers
+        if callable(local_roles):
+            local_roles = local_roles()
+        local_roles = tuple(local_roles)
         blocked = cls.get_local_roles_block(obj)
         return hash((local_roles, blocked))
 
