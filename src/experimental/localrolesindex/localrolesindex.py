@@ -72,6 +72,10 @@ class LocalRolesIndex(KeywordIndex):
 
     def _index_object_recursive(self, documentId, obj, threshold=None):
         node = Node.ensure_ancestry_to(obj, self.shadowtree)
+        try:
+            node.update_security_info(documentId, obj)
+        except (TypeError, AttributeError):
+            return 0
         shared_tokens = defaultdict(list)
         shared_tokens[node.token].append(node)
         for descendant in node.descendants():
