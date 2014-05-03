@@ -86,7 +86,10 @@ class LocalRolesIndex(KeywordIndex):
         for old_token, nodes_group in shared_tokens.items():
             first_node = next(iter(nodes_group))
             first_obj = self.unrestrictedTraverse(first_node.physical_path)
-            aru = first_obj.allowedRolesAndUsers()
+            from zope.component import queryMultiAdapter
+            from plone.indexer.interfaces import IIndexableObject
+            first_obj = queryMultiAdapter((first_obj, self.aq_parent.aq_parent), IIndexableObject)
+            aru = first_obj.allowedRolesAndUsers
             for node in nodes_group:
                 unindex_object(node.document_id)
                 dummy = _DummyObject(aru, node.physical_path)
