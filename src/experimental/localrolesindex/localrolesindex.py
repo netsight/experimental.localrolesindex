@@ -41,6 +41,7 @@ class LocalRolesIndex(KeywordIndex):
     """
     meta_type = 'LocalRolesIndex'
     query_options = ('query', 'operator')
+    attr = 'allowedRolesAndUsers'
 
     def __init__(self, *args, **kwargs):
         super(LocalRolesIndex, self).__init__(*args, **kwargs)
@@ -67,7 +68,7 @@ class LocalRolesIndex(KeywordIndex):
         except (TypeError, AttributeError):
             return 0
         index_object = super(LocalRolesIndex, self)._index_object
-        return index_object(documentId, obj, threshold=threshold, attr=self.id)
+        return index_object(documentId, obj, threshold=threshold, attr=self.attr)
 
     def _index_object_recursive(self, documentId, obj, threshold=None):
         node = Node.ensure_ancestry_to(obj, self.shadowtree)
