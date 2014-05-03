@@ -80,6 +80,14 @@ class TestLocalRolesIndex(unittest.TestCase):
         values = self._values
         self.assertEqual(len(self._index.referencedObjects()), len(values))
 
+    def test_index_clear(self):
+        self._populate_index()
+        values = self._values
+        self.assertEqual(len(self._index.referencedObjects()), len(values))
+        self._index.clear()
+        self.assertEqual(len(self._index.referencedObjects()), 0)
+        self.assertEqual(list(self._index.shadowtree.descendants()), [])
+
     def test_index_object_noop(self):
         self._populate_index()
         try:

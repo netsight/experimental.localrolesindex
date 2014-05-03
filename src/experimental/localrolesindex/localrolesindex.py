@@ -44,6 +44,10 @@ class LocalRolesIndex(KeywordIndex):
 
     def __init__(self, *args, **kwargs):
         super(LocalRolesIndex, self).__init__(*args, **kwargs)
+        self.clear()
+
+    def clear(self):
+        super(LocalRolesIndex, self).clear()
         self.shadowtree = Node()
 
     def index_object(self, documentId, obj, threshold=None):
