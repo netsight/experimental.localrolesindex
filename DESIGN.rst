@@ -140,9 +140,11 @@ configure this via an overrides.zcml in our product, which overrides plone.app.w
             context = ILocalRolesSharingOptimiser(context, context)
             super(SharingView, self).__init__(context, request)
 
-# The rest of implementation is same as subclass's.
-# subclass behaviour alterted because self.context will be a LocalRolesIndexingOptimiser if
-# the adapter has been registered.
+
+The rest of implementation would be the same as `plone.app.workflow.browser.sharinga.SharingView`.
+
+i.e We don't need to alter the behaviour of the default sharing view, since self.context 
+will be adapted to `IARUIndexOptimiser`.
 
 .. code-block:: xml
      
