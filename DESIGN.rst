@@ -102,8 +102,8 @@ context-needs-wrapping-in-proposed-adapter to something like the following:
 
 .. code-block:: python
 
-class IARUIndexOptimiser(zope.interface.Interface):
-    """Marker."""
+    class IARUIndexOptimiser(zope.interface.Interface):
+        """Marker."""
 
 
 .. code-block:: python
