@@ -98,29 +98,31 @@ context-needs-wrapping-in-proposed-adapter to something like the following:
 
 .. code-block: python
 
-class IARUIndexOptimiser(zope.interface.Interface):
-    """Marker."""
+   class IARUIndexOptimiser(zope.interface.Interface):
+       """Marker."""
 
 
-@zope.interface.implementer(ICatalogAware, IARUIndexOptimiser) # ICatalogAware covers DX and AT
-@zope.component.adapter(IPortalContent) # adapt any content object (DX and AT)
-class LocalRoleIndexingOptimiser(object):
+.. code-block: python
 
-    def __init__(self, context):
-    	self.context = context
-	# lookup a persistent utility we use to store the shadow tree
-	# GS migration step will have created the shadow tree and need to have indexed all content
-	# before we can use it
-	# e.g annotation on the portal catalog
-    	self._shadowtree = IAnnotations(api.portal.get_tool('portal_catalog'))
+   @zope.interface.implementer(ICatalogAware, IARUIndexOptimiser) # ICatalogAware covers DX and AT
+   @zope.component.adapter(IPortalContent) # adapt any content object (DX and AT)
+   class LocalRoleIndexingOptimiser(object):
 
-    # forward every other attribute to context or raise AttributeError
-    def __getattr__(self, name):
-        return getattr(self.context, name)
+	def __init__(self, context):
+	    self.context = context
+   	    # lookup a persistent utility we use to store the shadow tree
+   	    # GS migration step will have created the shadow tree and need to have indexed all content
+            # before we can use it
+	    # e.g annotation on the portal catalog
+    	    self._shadowtree = IAnnotations(api.portal.get_tool('portal_catalog'))
 
-    def reindexObjectSecurity(self, obj):
-    	# implemenation a la experiemental.localrolesindex.localrolesindex.LocalRolesIndex.index_object
-    	...
+	# forward every other attribute to context or raise AttributeError
+	def __getattr__(self, name):
+   	    return getattr(self.context, name)
+
+	def reindexObjectSecurity(self, obj):
+   	    # implemenation a la experiemental.localrolesindex.localrolesindex.LocalRolesIndex.index_object
+    	    ...
 	
 For the sharing view, provide a subclass of plone.app.workflow.browser.sharing.SharingView
 which adapts the context to be LocalRolesIndexingOptimiser and
@@ -129,38 +131,38 @@ configure this via an overrides.zcml in our product, which overrides plone.app.w
 
 .. code-block: python
 
-class SharingView(plone.app.workflow.browser.sharinga.SharingView):
+   class SharingView(plone.app.workflow.browser.sharinga.SharingView):
   
-   def __init__(self, context, request):
-       context = ILocalRolesSharingOptimiser(context, context)
-       super(SharingView, self).__init__(context, request)
+       def __init__(self, context, request):
+           context = ILocalRolesSharingOptimiser(context, context)
+           super(SharingView, self).__init__(context, request)
 
-   # The rest of implementation is same as subclass's.
-   # subclass behaviour alterted because self.context will be a LocalRolesIndexingOptimiser if
-   # the adapter has been registered.
+      # The rest of implementation is same as subclass's.
+      # subclass behaviour alterted because self.context will be a LocalRolesIndexingOptimiser if
+      # the adapter has been registered.
 
 .. code-block: xml
      
-<configure
-    xmlns="http://namespaces.zope.org/zope"
-    xmlns:browser="http://namespaces.zope.org/browser">
+   <configure
+     xmlns="http://namespaces.zope.org/zope"
+     xmlns:browser="http://namespaces.zope.org/browser">
 
-    <browser:page
-        name="sharing"
-        for="*"
-        class="experiemental.localrolesindex.browser.views.SharingView"
-        permission="plone.DelegateRoles"
-    />
+     <browser:page
+       name="sharing"
+       for="*"
+       class="experiemental.localrolesindex.browser.views.SharingView"
+       permission="plone.DelegateRoles"
+      />
 
-    <browser:page
-        name="updateSharingInfo"
-        for="*"
-        class=".sharing.SharingView"
-        attribute="updateSharingInfo"
-        permission="plone.DelegateRoles"
-        />
+     <browser:page
+       name="updateSharingInfo"
+       for="*"
+       class="experiemental.localrolesindex.browser.views.SharingView"
+       attribute="updateSharingInfo"
+       permission="plone.DelegateRoles"
+     />
 
-</configure>
+   </configure>
 
 
 
