@@ -63,8 +63,7 @@ an index.
 Possible alternative solution
 =============================
 
-Implement an adapter for the context of reindexObjectSecurity calls
--------------------------------------------------------------------
+Implement an adapter for the context of reindexObjectSecurity calls.
 
 The sharing view (plone.app.worflow.browser.sharing.SharingView) is
 the only *view* in plone which invokes reindexObjectSecurity, which is the call we want
