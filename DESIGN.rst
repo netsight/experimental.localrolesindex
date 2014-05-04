@@ -53,8 +53,12 @@ global portal_catalog.
 Thus our only way of getting at the catalog which our index is seated in is to use aquistion.
 
 It 'feels' wrong for the index to be acquiring its parent catalog and using that in order to retrieve an indexable
-version of the object it's traversing to.
-In fact, it just feels wrong for the index itself to be traversing to content.
+version of the object it's traversing to - and for this package to require 'knowing' about an interface that
+is provided higher up in the Plone stack.
+
+e.g Products.PluginIndexes do not import anything from plone or Products.CMF*,
+which is what 'feels wrong' about doing adaption to the `IIndexableObject` interface within
+an index.
 
 ------------------------------
 Possible alternative solutions
@@ -162,6 +166,18 @@ configure this via an overrides.zcml in our product, which overrides plone.app.w
       />
 
     </configure>
+
+
+This would mean that we don't need to alter the existing index for `allowedRolesAndUsers`.
+
+An addon based on this pattern would be adapted from `experiemental.localrolesindex`, 
+and renamed to something more appropriate in the experimental or collective namespace, perhaps:
+
+  - efficientaru ?
+
+We would likely still need to write a `GenericSetup` upgradeStep that reindexes all catalog content
+upon installation and removal of the addon.
+
 
 
 
