@@ -1,3 +1,4 @@
+=====
 Notes
 =====
 
@@ -12,7 +13,8 @@ This does, of course, have consequences for plone.intranet.
 
 
 experimental.localrolesindex testing on plone 4 + plone 5
-----------------------------------------------------------
+=========================================================
+
 In my testing of my branch oft MattH's latest commit (b94df8482a87172492c6383e6a7a90c5fa8b08f2):
 
 plone 4 +  5 (see buildout config herewith: plone5.cfg):
@@ -31,7 +33,7 @@ plone 4 +  5 (see buildout config herewith: plone5.cfg):
 
 
 Where to implement index optimisation?
---------------------------------------
+======================================
 At time of writing, experimental.localrolesindex tries to do the optimisation in
 an index. 
 
@@ -57,12 +59,12 @@ e.g Products.PluginIndexes do not import anything from plone or Products.CMF*,
 which is what 'feels wrong' about doing adaption to the `IIndexableObject` interface within
 an index.
 
-------------------------------
-Possible alternative solutions
-------------------------------
 
-1. Implement an adapter for the context of reindexObjectSecurity calls
-----------------------------------------------------------------------
+Possible alternative solution
+=============================
+
+Implement an adapter for the context of reindexObjectSecurity calls
+-------------------------------------------------------------------
 
 The sharing view (plone.app.worflow.browser.sharing.SharingView) is
 the only *view* in plone which invokes reindexObjectSecurity, which is the call we want
@@ -71,6 +73,7 @@ to change the behaviour of in order to do the optimisation.
 Find all the call sites of `reindexObjectSecurity`:
 
 .. code-block:: bash
+
   find omelette/ -type f -follow -not -name 'test_*' -name '*.py' -exec grep -HnE '[a-z]+\.reindexObjectSec' {} \;
 
 Results:
@@ -93,7 +96,7 @@ Results:
 
   * omelette/plone/app/iterate/subscribers/workflow.py:61:    event.working_copy.reindexObjectSecurity(et) (caller = handleCheckout, 1)
 
-\
+
 Provide an adapter which adapts the `context` in each case where
 context-needs-wrapping-in-proposed-adapter to something like the following:
 
