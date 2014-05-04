@@ -1,6 +1,3 @@
-:author: Matt Russell <mattr@netsight.co.uk>
-:date: 2014-05-04
-
 Notes
 =====
 
@@ -180,12 +177,5 @@ and renamed to something more appropriate in the experimental or collective name
 We would likely still need to write a `GenericSetup` upgradeStep that reindexes all catalog content
 upon installation and removal of the addon.
 
-
-
-
-
-
-
- 
-
-    
+:author: Matt Russell <mattr@netsight.co.uk>
+:date: 2014-05-04
