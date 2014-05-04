@@ -20,7 +20,7 @@ In my testing of my branch oft MattH's latest commit (b94df8482a87172492c6383e6a
 
 plone 4 +  5 (see buildout config herewith: plone5.cfg):
  
-  Javascript errors in sharing tab have thwarted in my attempts to test this effectively.
+  JavaScript errors in sharing tab have thwarted in my attempts to test this effectively.
 
   Does work::
 
@@ -46,11 +46,11 @@ Why?
 Because in order to index descendants, we need to selectively wakeup objects from the site's content tree (ZODB),
 and doing so requires calling:
 
-  - index.(un)restrictedTraverse
+  - index.unrestrictedTraverse
 
 Note that we cannot use plone.api.content.get in the index, since a site may be using a catalog other than the 
 global portal_catalog.
-Thus our only way of getting at the catalog which our index is seated in is to use aquistion.
+Thus our only way of getting at the catalog which our index is seated in is to use `Acquistion`.
 
 It 'feels' wrong for the index to be acquiring its parent catalog and using that in order to retrieve an indexable
 version of the object it's traversing to - and for this package to require 'knowing' about an interface that
